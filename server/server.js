@@ -1,17 +1,18 @@
 const express = require("express");
 const { spawn } = require("child_process");
 const path = require("path");
+const fs = require("fs");
+
+let cpuPathWin = path.join(__dirname, "../cpp/cpu.exe");
+let cpuPathLinux = path.join(__dirname, "../cpp-src/cpu");
+
+const cpuPath = fs.existsSync(cpuPathLinux) ? cpuPathLinux : cpuPathWin;
+
+console.log("Using CPU binary at:", cpuPath);
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "../public")));
-
-const cpuPath = process.env.NODE_ENV === "production"
-  ? path.join(__dirname, "../cpp-src/cpu")
-  : path.join(__dirname, "../cpp/cpu.exe");
-
-console.log("Using CPU binary at:", cpuPath);
-
 
 
 app.post("/run", (req, res) => {
