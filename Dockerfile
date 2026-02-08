@@ -6,7 +6,8 @@ WORKDIR /app
 
 COPY . .
 
-RUN cd cpp && g++ *.cpp -O2 -o cpu
+# Build C++ binary inside container
+RUN cd cpp-src && g++ main.cpp -O2 -o cpu
 
 EXPOSE 3000
 

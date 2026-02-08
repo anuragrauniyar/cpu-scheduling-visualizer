@@ -5,6 +5,8 @@ const path = require("path");
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "../public")));
+const cpuPath = path.join(__dirname, "../cpp-src/cpu");
+
 
 app.post("/run", (req, res) => {
   const mode = req.body.mode || "trace";
