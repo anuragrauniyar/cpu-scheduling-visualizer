@@ -2,6 +2,8 @@
 
 An interactive web-based tool to simulate and visualize classical CPU scheduling algorithms using a high-performance C++ backend with a Node.js server and a simple web UI. This project helps in understanding how different scheduling strategies behave over time and how they affect turnaround and waiting times of processes.
 
+Live Demo : https://cpu-scheduling-visualizer-wj4g.onrender.com/
+
 ---
 
 ## 🚀 Features
