@@ -14,6 +14,8 @@ COPY . .
 
 # Build C++ binary inside container
 RUN cd cpp-src && g++ main.cpp -O2 -o cpu
+RUN chmod +x cpp-src/cpu
+
 
 EXPOSE 3000
 

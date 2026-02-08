@@ -5,7 +5,13 @@ const path = require("path");
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "../public")));
-const cpuPath = path.join(__dirname, "../cpp-src/cpu");
+
+const cpuPath = process.env.NODE_ENV === "production"
+  ? path.join(__dirname, "../cpp-src/cpu")
+  : path.join(__dirname, "../cpp/cpu.exe");
+
+console.log("Using CPU binary at:", cpuPath);
+
 
 
 app.post("/run", (req, res) => {
