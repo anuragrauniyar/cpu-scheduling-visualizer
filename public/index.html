@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CPU Scheduling Visualizer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0f172a;       /* slate-900 */
+      --card: #020617;     /* slate-950 */
+      --muted: #94a3b8;    /* slate-400 */
+      --accent: #38bdf8;   /* sky-400 */
+      --border: #1e293b;   /* slate-800 */
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial;
+      background: linear-gradient(120deg, #020617, #0b1220);
+      color: #e5e7eb;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 1100px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 16px;
+    }
+
+    .card {
+      background: rgba(2, 6, 23, 0.8);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+
+    h1 {
+      grid-column: 1 / -1;
+      margin: 0 0 8px 0;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .subtitle {
+      grid-column: 1 / -1;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin: 10px 0 6px;
+    }
+
+    input, select, textarea, button {
+      width: 100%;
+      background: #020617;
+      color: #e5e7eb;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 140px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      resize: vertical;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+      color: #020617;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .08s ease, box-shadow .08s ease, filter .08s ease;
+      margin-top: 12px;
+    }
+
+    .btn:hover {
+      filter: brightness(1.05);
+      box-shadow: 0 8px 24px rgba(56,189,248,.35);
+      transform: translateY(-1px);
+    }
+
+    .output {
+  white-space: pre-wrap;
+  background: linear-gradient(180deg, #020617, #020617);
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 14px;
+  min-height: 260px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #e5e7eb;
+}
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    @media (max-width: 900px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>CPU Scheduling Visualizer</h1>
+    <div class="subtitle">
+      Compare FCFS, Round Robin, SRT, HRRN, Feedback Queues & Aging — powered by a C++ simulator.
+    </div>
+
+    <!-- Input Card -->
+    <div class="card">
+      <form id="simForm">
+        <div class="row">
+          <div>
+            <label>Mode</label>
+            <select name="mode" id="mode">
+              <option value="trace">Trace (Timeline)</option>
+              <option value="stats">Stats (Metrics)</option>
+            </select>
+          </div>
+          <div>
+            <label>Algorithms</label>
+            <input name="algos" placeholder="e.g. 1,2-2,4" value="1,2-2,4" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Simulation Time</label>
+            <input name="last" type="number" min="1" value="20" />
+          </div>
+          <div>
+            <label>#Processes</label>
+            <input name="count" type="number" min="1" value="5" />
+          </div>
+        </div>
+
+        <label>Processes (one per line: Name,Arrival,Service)</label>
+        <textarea name="procs">A,0,3
+B,2,6
+C,4,4
+D,6,5
+E,8,2</textarea>
+
+        <button class="btn" type="submit">Run Simulation</button>
+        <div class="hint">
+          Algorithms: 1=FCFS, 2=RR (use 2-q), 3=SPN, 4=SRT, 5=HRRN, 6=FB-1, 7=FB-2i, 8=Aging
+        </div>
+      </form>
+    </div>
+
+    <!-- Output Card -->
+    <div class="card">
+      <label>Output</label>
+      <div class="output" id="output">
+        Run a simulation to see results here…
+      </div>
+      <div class="hint">
+        Tip: Use Trace to visualize timelines; use Stats to compare turnaround times.
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+
+<script>
+  const form = document.getElementById("simForm");
+  const outputBox = document.getElementById("output");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    outputBox.textContent = "Running simulation...";
+
+    const formData = new FormData(form);
+
+    try {
+      const res = await fetch("/run", {
+        method: "POST",
+        body: new URLSearchParams(formData),
+      });
+
+      if (!res.ok) {
+        const err = await res.text();
+        outputBox.textContent = "Error:\n" + err;
+        return;
+      }
+
+      const text = await res.text();
+      outputBox.textContent = text;
+    } catch (err) {
+      outputBox.textContent = "Request failed: " + err.message;
+    }
+  });
+</script>
